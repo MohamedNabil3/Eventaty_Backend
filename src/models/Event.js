@@ -73,6 +73,19 @@ const eventSchema = new mongoose.Schema(
   }
 );
 
+eventSchema.pre(/^find/, async function (next) {
+  // 1. Find all events that are 'published' but whose end date has passed
+  // Note: We use the model directly to avoid an infinite loop
+  await this.model.updateMany(
+    {
+      status: "published",
+      endDateTime: { $lt: new Date() },
+    },
+    { status: "completed" }
+  );
+  next();
+});
+
 // // Indexing for faster queries
 // eventSchema.index({ startDateTime: 1 });
 module.exports = mongoose.model("Event", eventSchema);

@@ -16,6 +16,7 @@ module.exports = (err, req, res, next) => {
     (err.name === "MongoServerError" && err.code === 11000)
   ) {
     const message = "Duplicate field value entered";
+
     // err.keyValue holds the field that was duplicated
     err = new AppError("DuplicateKeyError", message, err.keyValue, 400);
   }

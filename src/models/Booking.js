@@ -52,6 +52,6 @@ const BookingSchema = new mongoose.Schema(
 );
 
 // Indexing for faster queries
-BookingSchema.index({ userId: 1, eventId: 1 });
+BookingSchema.index({ userId: 1, eventId: 1 }, { unique: true });
 
 module.exports = mongoose.model("Booking", BookingSchema);

@@ -2,7 +2,9 @@ const Venue = require("../models/Venue");
 const { AppError } = require("../utils/AppError");
 
 exports.getAllVenues = async () => {
-  return await Venue.find().select("-createdAt -updatedAt");
+  return await Venue.find()
+    .populate("eventCount")
+    .select("-createdAt -updatedAt");
 };
 
 exports.getVenueById = async (id, filters = {}) => {
@@ -11,11 +13,13 @@ exports.getVenueById = async (id, filters = {}) => {
     match.startDateTime = filters.date;
   }
 
-  const venue = await Venue.findById(id).populate({
-    path: "events",
-    match: match,
-    options: { sort: { startDateTime: 1 } },
-  });
+  const venue = await Venue.findById(id)
+    .populate("eventCount")
+    .populate({
+      path: "events",
+      match: match,
+      options: { sort: { startDateTime: 1 } },
+    });
   if (!venue) {
     throw new AppError(
       "NotFoundError",

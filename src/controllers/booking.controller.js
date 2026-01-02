@@ -38,7 +38,7 @@ const getBookingByReference = catchError(async (req, res, next) => {
 });
 
 const createBooking = catchError(async (req, res, next) => {
-  const newBooking = await bookingService.createBooking(req.body);
+  const newBooking = await bookingService.createBooking(req.userId, req.body);
   res.status(201).json({
     status: "success",
     data: { newBooking },

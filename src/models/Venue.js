@@ -7,6 +7,34 @@ const venueSchema = new mongoose.Schema(
       required: true,
       unique: true,
     },
+    description: {
+      type: String,
+      required: true,
+    },
+    amenities: [
+      {
+        name: {
+          type: String,
+          required: false,
+          enum: [
+            "WiFi",
+            "Parking",
+            "Food Court",
+            "Wheelchair access",
+            "VIP Lounge",
+            "air conditioning",
+            "",
+          ],
+          default: "",
+        },
+        icon: {
+          type: String,
+          required: false,
+          enum: ["wifi", "parking", "food", "wheelchair", "vip", "ac", ""],
+          default: "",
+        },
+      },
+    ],
     address: {
       type: String,
       required: true,
@@ -54,6 +82,13 @@ venueSchema.virtual("events", {
   ref: "Event",
   localField: "_id",
   foreignField: "venueId",
+});
+
+venueSchema.virtual("eventCount", {
+  ref: "Event",
+  localField: "_id",
+  foreignField: "venueId",
+  count: true,
 });
 
 venueSchema.set("toObject", { virtuals: true });

@@ -37,6 +37,7 @@ module.exports.login = catchError(async (req, res) => {
       firstName: user.firstName,
       lastName: user.lastName,
       role: user.role,
+      phone: user.phone,
     },
   });
 });
@@ -52,6 +53,7 @@ module.exports.updateUser = catchError(async (req, res, next) => {
         firstName: user.firstName,
         lastName: user.lastName,
         role: user.role,
+        phone: user.phone,
       },
     });
   } else {
@@ -78,6 +80,7 @@ module.exports.deleteUser = catchError(async (req, res, next) => {
         firstName: user.firstName,
         lastName: user.lastName,
         role: user.role,
+        phone: user.phone,
       },
     });
   } else {
@@ -112,6 +115,7 @@ module.exports.getAuthUser = catchError(async (req, res, next) => {
       firstName: user.firstName,
       lastName: user.lastName,
       role: user.role,
+      phone: user.phone,
     },
   });
 });
@@ -127,6 +131,7 @@ module.exports.createAdmin = catchError(async (req, res) => {
       firstName: newUser.firstName,
       lastName: newUser.lastName,
       role: newUser.role,
+      phone: newUser.phone,
     },
   });
 });

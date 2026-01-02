@@ -10,7 +10,6 @@ const generateBookingReference = () => {
 
 const getAllBookings = async (filters = {}) => {
   const query = {};
-
   if (filters.status) {
     query.status = filters.status;
   }
@@ -49,7 +48,7 @@ const getBookingsByUserId = async (userId) => {
     .sort({ createdAt: -1 });
 };
 
-const createBooking = async (data) => {
+const createBooking = async (userId, data) => {
   const { eventId, seatsBooked } = data;
 
   // Find the event
@@ -89,7 +88,9 @@ const createBooking = async (data) => {
   const isLastMinuteBooking = cancellationDeadline <= new Date();
 
   const newBooking = new Booking({
-    ...data,
+    eventId,
+    userId,
+    seatsBooked,
     bookingReference,
     totalAmount,
     cancellationDeadline,
