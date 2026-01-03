@@ -17,6 +17,12 @@ const BookingSchema = new mongoose.Schema(
       ref: "Event",
       required: true,
     },
+    ticketType: {
+      type: String,
+      enum: ["General", "VIP"],
+      default: "General",
+      required: true,
+    },
     seatsBooked: {
       type: Number,
       required: true,
@@ -52,6 +58,6 @@ const BookingSchema = new mongoose.Schema(
 );
 
 // Indexing for faster queries
-BookingSchema.index({ userId: 1, eventId: 1 }, { unique: true });
+// BookingSchema.index({ userId: 1, eventId: 1 }, { unique: true });
 
 module.exports = mongoose.model("Booking", BookingSchema);

@@ -21,35 +21,59 @@ const getAllBookings = async (filters = {}) => {
     query.createdAt = { $gte: start, $lte: end };
   }
 
-  return await Booking.find(query)
+  const bookings = await Booking.find(query)
     .populate("userId", "firstName lastName email phone")
     .populate("eventId", "title description images startDateTime endDateTime")
     .sort({ createdAt: -1 });
+
+  if (!bookings || bookings.length === 0) {
+    throw new AppError("NotFoundError", "No bookings found", null, 404);
+  }
+
+  return bookings;
 };
 
 const getBookingById = async (id) => {
-  return await Booking.findById(id)
+  const booking = await Booking.findById(id)
     .populate("userId", "firstName lastName email phone")
     .populate("eventId", "title description images startDateTime endDateTime");
+
+  if (!booking) {
+    throw new AppError("NotFoundError", "Booking not found", null, 404);
+  }
+
+  return booking;
 };
 
 const getBookingByReference = async (reference) => {
-  return await Booking.findOne({
+  const booking = await Booking.findOne({
     bookingReference: reference.toUpperCase(),
   })
     .populate("userId", "firstName lastName email phone")
     .populate("eventId", "title description images startDateTime endDateTime");
+
+  if (!booking) {
+    throw new AppError("NotFoundError", "Booking not found", null, 404);
+  }
+
+  return booking;
 };
 
 const getBookingsByUserId = async (userId) => {
-  return await Booking.find({ userId })
+  const bookings = await Booking.find({ userId })
     .populate("userId", "firstName lastName email phone")
     .populate("eventId", "title description images startDateTime endDateTime")
     .sort({ createdAt: -1 });
+
+  if (!bookings || bookings.length === 0) {
+    throw new AppError("NotFoundError", "You have no bookings yet", null, 404);
+  }
+
+  return bookings;
 };
 
 const createBooking = async (userId, data) => {
-  const { eventId, seatsBooked } = data;
+  const { eventId, seatsBooked, ticketType = "General" } = data;
 
   // Find the event
   const event = await Event.findById(eventId);
@@ -77,7 +101,18 @@ const createBooking = async (userId, data) => {
     );
   }
 
-  const totalAmount = event.price * seatsBooked;
+  // Find the ticket configuration for the selected type
+  const ticketInfo = event.tickets.find((t) => t.type === ticketType);
+  if (!ticketInfo) {
+    throw new AppError(
+      "ValidationError",
+      `Ticket type '${ticketType}' is not available for this event`,
+      null,
+      400
+    );
+  }
+
+  const totalAmount = event.price * ticketInfo.multiplier * seatsBooked;
   const bookingReference = generateBookingReference();
 
   // Calculate cancellation deadline (24h before event starts)
@@ -90,6 +125,7 @@ const createBooking = async (userId, data) => {
   const newBooking = new Booking({
     eventId,
     userId,
+    ticketType,
     seatsBooked,
     bookingReference,
     totalAmount,
@@ -110,7 +146,7 @@ const createBooking = async (userId, data) => {
 const updateBooking = async (userId, bookingId, data) => {
   const booking = await Booking.findById(bookingId);
   if (!booking) {
-    return null;
+    throw new AppError("NotFoundError", "Booking not found", null, 404);
   }
 
   if (booking.userId != userId) {
@@ -175,7 +211,7 @@ const updateBooking = async (userId, bookingId, data) => {
 const deleteBooking = async (userId, bookingId) => {
   const booking = await Booking.findById(bookingId);
   if (!booking) {
-    return false;
+    throw new AppError("NotFoundError", "Booking not found", null, 404);
   }
 
   if (booking.userId != userId) {
@@ -201,9 +237,20 @@ const deleteBooking = async (userId, bookingId) => {
 };
 
 const getBookingsByEventId = async (eventId) => {
-  return await Booking.find({ eventId })
+  const bookings = await Booking.find({ eventId })
     .populate("userId", "firstName lastName email phone") // Don't send passwords
     .sort({ createdAt: -1 });
+
+  if (!bookings || bookings.length === 0) {
+    throw new AppError(
+      "NotFoundError",
+      "No bookings found for this event",
+      null,
+      404
+    );
+  }
+
+  return bookings;
 };
 
 module.exports = {

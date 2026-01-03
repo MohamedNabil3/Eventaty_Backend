@@ -7,6 +7,7 @@ exports.getAllEvents = catchError(async (req, res, next) => {
   if (req.query.venueId) filter.venueId = req.query.venueId;
   if (req.query.categoryId) filter.categoryId = req.query.categoryId;
   if (req.query.featured) filter.featured = req.query.featured;
+  if (req.query.ticketType) filter["tickets.type"] = req.query.ticketType;
 
   // const page = req.query.page * 1 || 1;
   // const limit = req.query.limit * 1 || 10;
