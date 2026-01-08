@@ -62,14 +62,28 @@ const getBookingByReference = async (reference) => {
 const getBookingsByUserId = async (userId) => {
   const bookings = await Booking.find({ userId })
     .populate("userId", "firstName lastName email phone")
-    .populate("eventId", "title description images startDateTime endDateTime")
+    .populate({
+      path: "eventId",
+      select: "title description images startDateTime endDateTime venueId",
+      populate: { path: "venueId", select: "address city country" },
+    })
     .sort({ createdAt: -1 });
 
   if (!bookings || bookings.length === 0) {
     throw new AppError("NotFoundError", "You have no bookings yet", null, 404);
   }
 
-  return bookings;
+  // Attach populated venue under `eventId.venue` for easier access (event.venue.address)
+  const result = bookings.map((b) => {
+    const obj = b.toObject();
+    if (obj.eventId && obj.eventId.venueId) {
+      obj.eventId.venue = obj.eventId.venueId;
+      delete obj.eventId.venueId;
+    }
+    return obj;
+  });
+
+  return result;
 };
 
 const createBooking = async (userId, data) => {

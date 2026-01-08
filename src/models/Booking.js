@@ -19,7 +19,7 @@ const BookingSchema = new mongoose.Schema(
     },
     ticketType: {
       type: String,
-      enum: ["General", "VIP"],
+      enum: ["General", "VIP", "VIP Gold", "VIP Platinum"],
       default: "General",
       required: true,
     },

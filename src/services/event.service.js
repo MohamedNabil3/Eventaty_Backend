@@ -10,20 +10,20 @@ exports.getAllEvents = async (filter = {} /* , skip = 0, limit = 10 */) => {
   //   .populate("createdBy", " firstName email");
   return await Event.find(filter)
     .populate("createdBy", " firstName email")
-    .populate("venueId", "name address city capacity images")
+    .populate("venueId", "name address city capacity images description")
     .populate("categoryId", "name description");
 };
 
 exports.getAllFeaturedEvents = async () => {
   return await Event.find({ featured: true })
     .populate("createdBy", " firstName email")
-    .populate("venueId", "name address city capacity images")
+    .populate("venueId", "name address city capacity images description")
     .populate("categoryId", "name description");
 };
 exports.getEventById = async (id) => {
   const event = await Event.findById(id)
     .populate("createdBy", " firstName email")
-    .populate("venueId", "name address city capacity images")
+    .populate("venueId", "name address city capacity images description")
     .populate("categoryId", "name description");
 
   if (!event) {

@@ -70,7 +70,7 @@ const eventSchema = new mongoose.Schema(
       {
         type: {
           type: String,
-          enum: ["General", "VIP"],
+          enum: ["General", "VIP", "VIP Gold", "VIP Platinum"],
           default: "General",
         },
         description: {
