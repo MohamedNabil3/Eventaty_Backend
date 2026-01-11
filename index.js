@@ -11,10 +11,14 @@ require("dotenv").config();
 const app = express();
 
 // --- 1. Security & Global Middlewares ---
-app.use(helmet());
+app.use(
+  helmet({
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+  })
+);
 app.use(cors());
 app.use(express.json());
-// app.use(expressMongoSanitize()); // to make this library work fine with express, you need to downgrade your express version to v4
+app.use(expressMongoSanitize()); // to make this library work fine with express, you need to downgrade your express version to v4
 // because in express v5 you can only read req.params and req.query but not editing them like this library try to do
 
 // Serve static files from 'src/uploads' directory

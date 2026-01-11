@@ -89,13 +89,13 @@ const getBookingsByUserId = async (userId) => {
 const createBooking = async (userId, data) => {
   const { eventId, seatsBooked, ticketType = "General" } = data;
 
-  // Find the event
+  // 1. Initial validation - find the event
   const event = await Event.findById(eventId);
   if (!event) {
     throw new AppError("NotFoundError", "Event not found", null, 404);
   }
 
-  // Check if event is published
+  // 2. Check if event is published
   if (event.status !== "published") {
     throw new AppError(
       "ValidationError",
@@ -105,8 +105,24 @@ const createBooking = async (userId, data) => {
     );
   }
 
-  // Check seat availability
-  if (event.availableSeats < seatsBooked) {
+  // 3. ATOMIC DECREMENT: Only proceed if availableSeats >= seatsBooked
+  // This is the critical step to prevent overbooking
+  const updatedEvent = await Event.findOneAndUpdate(
+    {
+      _id: eventId,
+      availableSeats: { $gte: seatsBooked },
+    },
+    {
+      $inc: { availableSeats: -seatsBooked },
+    },
+    {
+      new: true,
+      runValidators: true,
+    }
+  );
+
+  // If updatedEvent is null, it means availableSeats was less than seatsBooked at the exact moment of execution
+  if (!updatedEvent) {
     throw new AppError(
       "ValidationError",
       "Not enough seats available",
@@ -115,9 +131,14 @@ const createBooking = async (userId, data) => {
     );
   }
 
-  // Find the ticket configuration for the selected type
+  // 4. Validate ticket type exists on the event
   const ticketInfo = event.tickets.find((t) => t.type === ticketType);
   if (!ticketInfo) {
+    // ROLLBACK: Return the seats if ticket type is invalid
+    await Event.findByIdAndUpdate(eventId, {
+      $inc: { availableSeats: seatsBooked },
+    });
+
     throw new AppError(
       "ValidationError",
       `Ticket type '${ticketType}' is not available for this event`,
@@ -144,15 +165,19 @@ const createBooking = async (userId, data) => {
     bookingReference,
     totalAmount,
     cancellationDeadline,
-    cancellationAllowed: !isLastMinuteBooking, // Block cancellation for last-minute bookings
-    status: "confirmed", // Set to confirmed immediately if payment is handled elsewhere
+    cancellationAllowed: !isLastMinuteBooking,
+    status: "confirmed",
   });
 
-  await newBooking.save();
-
-  // Atomically decrease available seats in Event
-  event.availableSeats -= seatsBooked;
-  await event.save();
+  try {
+    await newBooking.save();
+  } catch (error) {
+    // ROLLBACK: Return seats if booking fails to save (e.g. database error)
+    await Event.findByIdAndUpdate(eventId, {
+      $inc: { availableSeats: seatsBooked },
+    });
+    throw error;
+  }
 
   return newBooking;
 };
@@ -182,9 +207,8 @@ const updateBooking = async (userId, bookingId, data) => {
   ];
   forbiddenFields.forEach((field) => delete data[field]);
 
-  // 2. Cancellation logic
+  // 2. Atomic Cancellation logic
   if (data.status === "cancelled" && booking.status !== "cancelled") {
-    // Check if the booking was record as non-cancellable
     if (!booking.cancellationAllowed) {
       throw new AppError(
         "ValidationError",
@@ -194,7 +218,6 @@ const updateBooking = async (userId, bookingId, data) => {
       );
     }
 
-    // Check if current time is past the deadline
     if (new Date() > booking.cancellationDeadline) {
       throw new AppError(
         "ValidationError",
@@ -204,12 +227,10 @@ const updateBooking = async (userId, bookingId, data) => {
       );
     }
 
-    // Return seats to event
-    const event = await Event.findById(booking.eventId);
-    if (event) {
-      event.availableSeats += booking.seatsBooked;
-      await event.save();
-    }
+    // Return seats to event inventory atomically
+    await Event.findByIdAndUpdate(booking.eventId, {
+      $inc: { availableSeats: booking.seatsBooked },
+    });
   }
 
   const updated = await Booking.findByIdAndUpdate(bookingId, data, {
@@ -237,13 +258,11 @@ const deleteBooking = async (userId, bookingId) => {
     );
   }
 
-  // If we delete an active booking, return seats to the event inventory
+  // If we delete an active booking, return seats to the event inventory atomically
   if (booking.status !== "cancelled") {
-    const event = await Event.findById(booking.eventId);
-    if (event) {
-      event.availableSeats += booking.seatsBooked;
-      await event.save();
-    }
+    await Event.findByIdAndUpdate(booking.eventId, {
+      $inc: { availableSeats: booking.seatsBooked },
+    });
   }
 
   await Booking.findByIdAndDelete(bookingId);
