@@ -13,8 +13,8 @@ const requireAuth = (req, res, next) => {
         "AuthenticationError",
         "No token provided",
         "Authorization header missing or invalid",
-        401
-      )
+        401,
+      ),
     );
   }
 
@@ -28,8 +28,8 @@ const requireAuth = (req, res, next) => {
             "AuthenticationError",
             "Invalid token",
             "Token verification failed",
-            401
-          )
+            401,
+          ),
         );
       }
       req.userId = decodedToken.id;
@@ -41,8 +41,8 @@ const requireAuth = (req, res, next) => {
         "AuthenticationError",
         "No token provided",
         "Token not found in header",
-        401
-      )
+        401,
+      ),
     );
   }
 };
@@ -56,8 +56,8 @@ const requireAdmin = (req, res, next) => {
         "AuthenticationError",
         "No token provided",
         "Authorization header missing or invalid",
-        401
-      )
+        401,
+      ),
     );
   }
 
@@ -71,8 +71,8 @@ const requireAdmin = (req, res, next) => {
             "AuthenticationError",
             "Invalid token",
             "Token verification failed",
-            401
-          )
+            401,
+          ),
         );
       }
 
@@ -84,8 +84,8 @@ const requireAdmin = (req, res, next) => {
             "NotFoundError",
             "User not found",
             "Token belongs to a user that no longer exists",
-            401
-          )
+            401,
+          ),
         );
       }
       if (user.role !== "admin") {
@@ -94,8 +94,8 @@ const requireAdmin = (req, res, next) => {
             "AuthorizationError",
             "Forbidden",
             "You are not authorized to do this action",
-            403
-          )
+            403,
+          ),
         );
       }
       req.adminId = user._id;
@@ -107,8 +107,8 @@ const requireAdmin = (req, res, next) => {
         "AuthenticationError",
         "No token provided",
         "Token not found in header",
-        401
-      )
+        401,
+      ),
     );
   }
 };
