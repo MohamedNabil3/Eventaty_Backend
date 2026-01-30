@@ -1,6 +1,5 @@
 const eventService = require("../services/event.service");
 const { catchError } = require("../utils/AppError");
-const path = require("path");
 
 exports.getAllEvents = catchError(async (req, res, next) => {
   const filter = {};
@@ -43,9 +42,7 @@ exports.getEventById = catchError(async (req, res, next) => {
 exports.createEvent = catchError(async (req, res, next) => {
   let eventData = { ...req.body };
   if (req.files && req.files.length > 0) {
-    eventData.images = req.files.map((file) =>
-      path.join("uploads", file.filename).replace(/\\/g, "/")
-    );
+    eventData.images = req.files.map((file) => file.path);
   }
 
   const event = await eventService.createEvent(eventData, req.adminId);
@@ -58,9 +55,7 @@ exports.createEvent = catchError(async (req, res, next) => {
 exports.updateEvent = catchError(async (req, res, next) => {
   let eventData = { ...req.body };
   if (req.files && req.files.length > 0) {
-    eventData.images = req.files.map((file) =>
-      path.join("uploads", file.filename).replace(/\\/g, "/")
-    );
+    eventData.images = req.files.map((file) => file.path);
   }
 
   const event = await eventService.updateEvent(req.params.id, eventData);

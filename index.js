@@ -14,7 +14,7 @@ const app = express();
 app.use(
   helmet({
     crossOriginResourcePolicy: { policy: "cross-origin" },
-  })
+  }),
 );
 app.use(cors());
 app.use(express.json());
@@ -33,8 +33,8 @@ app.use((req, res, next) => {
       "NotFoundError",
       "Page not found",
       "the page you are looking for does not exist",
-      404
-    )
+      404,
+    ),
   );
 });
 
