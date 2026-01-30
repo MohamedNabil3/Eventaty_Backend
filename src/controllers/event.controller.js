@@ -41,6 +41,15 @@ exports.getEventById = catchError(async (req, res, next) => {
 
 exports.createEvent = catchError(async (req, res, next) => {
   let eventData = { ...req.body };
+
+  if (typeof eventData.tickets === "string") {
+    try {
+      eventData.tickets = JSON.parse(eventData.tickets);
+    } catch (error) {
+      // Logic for handling invalid JSON if necessary
+    }
+  }
+
   if (req.files && req.files.length > 0) {
     eventData.images = req.files.map((file) => file.path);
   }
@@ -54,6 +63,13 @@ exports.createEvent = catchError(async (req, res, next) => {
 
 exports.updateEvent = catchError(async (req, res, next) => {
   let eventData = { ...req.body };
+
+  if (typeof eventData.tickets === "string") {
+    try {
+      eventData.tickets = JSON.parse(eventData.tickets);
+    } catch (error) {}
+  }
+
   if (req.files && req.files.length > 0) {
     eventData.images = req.files.map((file) => file.path);
   }
@@ -77,7 +93,7 @@ exports.deleteEvent = catchError(async (req, res, next) => {
 exports.updateEventStatus = catchError(async (req, res, next) => {
   const event = await eventService.updateEventStatus(
     req.params.id,
-    req.body.status
+    req.body.status,
   );
   res.status(200).json({
     status: "success",
