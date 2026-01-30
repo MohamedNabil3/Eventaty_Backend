@@ -66,23 +66,23 @@ const eventSchema = new mongoose.Schema(
       required: false,
       immutable: true,
     },
-    // tickets: [
-    //   {
-    //     type: {
-    //       type: String,
-    //       enum: ["General", "VIP", "VIP Gold", "VIP Platinum"],
-    //       default: "General",
-    //     },
-    //     description: {
-    //       type: String,
-    //       required: true,
-    //     },
-    //     multiplier: {
-    //       type: Number,
-    //       required: true,
-    //     },
-    //   },
-    // ],
+    tickets: [
+      {
+        type: {
+          type: String,
+          enum: ["General", "VIP", "VIP Gold", "VIP Platinum"],
+          default: "General",
+        },
+        description: {
+          type: String,
+          required: true,
+        },
+        multiplier: {
+          type: Number,
+          required: true,
+        },
+      },
+    ],
   },
   {
     timestamps: true,
